@@ -1,5 +1,6 @@
 import time, itertools
 from dataset import ImageFolder
+from torch.serialization import MAP_LOCATION
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from networks import *
@@ -358,7 +359,7 @@ class UGATIT(object) :
         torch.save(params, os.path.join(dir, self.dataset + '_params_%07d.pt' % step))
 
     def load(self, dir, step):
-        params = torch.load(os.path.join(dir, self.dataset + '_params_%07d.pt' % step))
+        params = torch.load(os.path.join(dir, self.dataset + '_params_%07d.pt' % step),map_location=torch.device(self.device))
         self.genA2B.load_state_dict(params['genA2B'])
         self.genB2A.load_state_dict(params['genB2A'])
         self.disGA.load_state_dict(params['disGA'])
