@@ -265,9 +265,6 @@ class UGATIT(object) :
                         trainB_iter = iter(self.trainB_loader)
                         real_B, _ = next(trainB_iter)
                     real_A, real_B = real_A.to(self.device), real_B.to(self.device)
-                    
-                    real_A.cpu()
-                    real_B.cpu()
 
                     fake_A2B, _, fake_A2B_heatmap = self.genA2B(real_A)
                     fake_B2A, _, fake_B2A_heatmap = self.genB2A(real_B)
