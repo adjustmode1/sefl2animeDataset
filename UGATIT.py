@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from networks import *
 from utils import *
 from glob import glob
+import torch
 
 class UGATIT(object) :
     def __init__(self, args):
@@ -150,16 +151,16 @@ class UGATIT(object) :
                 self.D_optim.param_groups[0]['lr'] -= (self.lr / (self.iteration // 2))
 
             try:
-                real_A, _ = trainA_iter.next()
+                real_A, _ = next(trainA_iter)
             except:
                 trainA_iter = iter(self.trainA_loader)
-                real_A, _ = trainA_iter.next()
+                real_A, _ = next(trainA_iter)
 
             try:
-                real_B, _ = trainB_iter.next()
+                real_B, _ = next(trainB_iter)
             except:
                 trainB_iter = iter(self.trainB_loader)
-                real_B, _ = trainB_iter.next()
+                real_B, _ = next(trainB_iter)
 
             real_A, real_B = real_A.to(self.device), real_B.to(self.device)
 
@@ -241,6 +242,8 @@ class UGATIT(object) :
             self.genA2B.apply(self.Rho_clipper)
             self.genB2A.apply(self.Rho_clipper)
 
+            torch.cuda.empty_cache()
+
             print("[%5d/%5d] time: %4.4f d_loss: %.8f, g_loss: %.8f" % (step, self.iteration, time.time() - start_time, Discriminator_loss, Generator_loss))
             if step % self.print_freq == 0:
                 train_sample_num = 5
@@ -251,17 +254,20 @@ class UGATIT(object) :
                 self.genA2B.eval(), self.genB2A.eval(), self.disGA.eval(), self.disGB.eval(), self.disLA.eval(), self.disLB.eval()
                 for _ in range(train_sample_num):
                     try:
-                        real_A, _ = trainA_iter.next()
+                        real_A, _ = next(trainA_iter)
                     except:
                         trainA_iter = iter(self.trainA_loader)
-                        real_A, _ = trainA_iter.next()
+                        real_A, _ = next(trainA_iter)
 
                     try:
-                        real_B, _ = trainB_iter.next()
+                        real_B, _ = next(trainB_iter)
                     except:
                         trainB_iter = iter(self.trainB_loader)
-                        real_B, _ = trainB_iter.next()
+                        real_B, _ = next(trainB_iter)
                     real_A, real_B = real_A.to(self.device), real_B.to(self.device)
+                    
+                    real_A.cpu()
+                    real_B.cpu()
 
                     fake_A2B, _, fake_A2B_heatmap = self.genA2B(real_A)
                     fake_B2A, _, fake_B2A_heatmap = self.genB2A(real_B)
@@ -290,16 +296,16 @@ class UGATIT(object) :
 
                 for _ in range(test_sample_num):
                     try:
-                        real_A, _ = testA_iter.next()
+                        real_A, _ = next(testA_iter)
                     except:
                         testA_iter = iter(self.testA_loader)
-                        real_A, _ = testA_iter.next()
+                        real_A, _ = next(testA_iter)
 
                     try:
-                        real_B, _ = testB_iter.next()
+                        real_B, _ = next(testB_iter)
                     except:
                         testB_iter = iter(self.testB_loader)
-                        real_B, _ = testB_iter.next()
+                        real_B, _ = next(testB_iter)
                     real_A, real_B = real_A.to(self.device), real_B.to(self.device)
 
                     fake_A2B, _, fake_A2B_heatmap = self.genA2B(real_A)
